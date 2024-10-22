@@ -4,7 +4,9 @@ namespace Itau\API;
 use Itau\API\BoleCode\BoleCode;
 use Itau\API\BoleCode\BoleCodeResponse;
 use Itau\API\Boleto\Boleto;
+use Itau\API\Boleto\BoletoRequest;
 use Itau\API\Boleto\BoletoResponse;
+use Itau\API\Francesa\MovimentacaoResponse;
 use Itau\API\Pix\Pix;
 use Itau\API\Pix\PixResponse;
 use Itau\API\Vencimento\Vencimento;
@@ -198,6 +200,33 @@ class Itau
         }
     }
 
+    public function boleto(Boleto $boleto): BoletoResponse
+    {
+        $boleCodeResponse = new BoletoResponse();
+        try{
+            if ($this->debug) {
+                print $boleto->toJSON();
+            }
+
+            $boletoRequest = new BoletoRequest();
+            $boletoRequest->data = $boleto;
+
+            $request = new Request($this);
+
+            $response = $request->post($this, "{$this->getEnvironment()->getApiBoletoUrl()}/boletos", $boletoRequest->toJSON());
+            $boleCodeResponse->mapperJson($boleto->toArray());
+            // Add response fields
+            $boleCodeResponse->mapperJson($response);
+            $boleCodeResponse->setData($response["data"]);
+            $boleCodeResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
+            return $boleCodeResponse;
+
+        } catch (\Exception $e) {
+            return $this->generateErrorResponse($boleCodeResponse, $e);
+        }
+    }
+
+
     public function alterarVencimentoBoleto($agencia, $contaComDigito, $carteira, $nossoNumero, Vencimento $vencimento)
     {
         $boletoResponse = new BoletoResponse();
@@ -237,6 +266,20 @@ class Itau
 
         return $boletoResponse;
     }
+
+    
+    public function consultarPagamentos($agencia, $contaComDigito, $data, $page = 0, $tipo = "liquidacoes")
+    {
+        $movimentacaoResponse = new MovimentacaoResponse();
+
+        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT).str_pad($contaComDigito, 8, '0', STR_PAD_LEFT);
+        $request = new Request($this);
+        $response = $request->get($this, "https://boletos.cloud.itau.com.br/boletos/v3/francesas/{$path}/movimentacoes?data={$data}&tipo_movimentacao={$tipo}&page={$page}", '{}');
+        $movimentacaoResponse->mapperJson($response);
+        return $movimentacaoResponse;
+    }
+
+
 
     private function generateErrorResponse(BaseResponse $baseResponse, $e)
     {

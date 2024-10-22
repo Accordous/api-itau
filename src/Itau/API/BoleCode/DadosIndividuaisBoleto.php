@@ -13,6 +13,9 @@ class DadosIndividuaisBoleto implements JsonSerializable
     private string $valor_titulo;
     private string $data_limite_pagamento;
 
+    public string $codigo_barras;
+    public string $numero_linha_digitavel;
+
     public function setDados(
         string $nossoNumero, string $dataVencimento, string $valor, ?string $limitePagamento = null
     ): self
@@ -23,7 +26,6 @@ class DadosIndividuaisBoleto implements JsonSerializable
         if(!empty($limitePagamento)){
             $this->data_limite_pagamento = $limitePagamento;
         }
-        
         return $this;
     }
 }

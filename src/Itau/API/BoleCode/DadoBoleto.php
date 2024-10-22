@@ -11,7 +11,10 @@ class DadoBoleto implements \JsonSerializable
     const ESPECIE_DM = '01';
     const ESPECIE_DS = '08';
 
-    private string $descricao_instrumento_cobranca = "boleto_pix";
+    const INSTRUMENTO_COBRANCA_BOLETO = "boleto";
+    const INSTRUMENTO_COBRANCA_BOLECODE = "boleto_pix";
+
+    private string $descricao_instrumento_cobranca = self::INSTRUMENTO_COBRANCA_BOLECODE;
     private int $codigo_carteira = 109;
     private string $valor_total_titulo;
     private string $codigo_especie;
@@ -21,8 +24,13 @@ class DadoBoleto implements \JsonSerializable
     private ?array $dados_individuais_boleto = [];
     private Juros $juros;
     private Multa $multa;
+    private string $tipo_boleto = "a vista";
+    private RecebimentoDivergente $recebimento_divergente;
+    private int $desconto_expresso =  0;
 
 
+
+    
     public function __construct()
     {
         $this->data_emissao = date("Y-m-d");
@@ -36,6 +44,16 @@ class DadoBoleto implements \JsonSerializable
         return $this;
     }
 
+    public function setDescricaoInstrumentoCobranca($descricao_instrumento_cobranca){
+        $this->descricao_instrumento_cobranca = $descricao_instrumento_cobranca;
+        return $this;
+    }
+
+    public function setDataEmissao($data_emissao){
+        $this->data_emissao = $data_emissao;
+        return $this;
+    }
+
     public function pagador(): Pagador
     {
         $pagador = new Pagador();
@@ -45,7 +63,7 @@ class DadoBoleto implements \JsonSerializable
         return $pagador;
     }
 
-    private function setPagador(Pagador $pagador): self
+    public function setPagador(Pagador $pagador): self
     {
         $this->pagador = $pagador;
         return $this;
@@ -60,7 +78,7 @@ class DadoBoleto implements \JsonSerializable
         return $dados;
     }
 
-    private function setDadosIndividuaisBoleto(DadosIndividuaisBoleto $dados): self
+    public function setDadosIndividuaisBoleto(DadosIndividuaisBoleto $dados): self
     {
         array_push($this->dados_individuais_boleto, $dados);
         return $this;
@@ -75,7 +93,7 @@ class DadoBoleto implements \JsonSerializable
         return $juros;
     }
 
-    private function setJuros(Juros $juros): self
+    public function setJuros(Juros $juros): self
     {
         $this->juros = $juros;
         return $this;
@@ -90,9 +108,26 @@ class DadoBoleto implements \JsonSerializable
         return $multa;
     }
 
-    private function setMulta(Multa $multa): self
+    public function setMulta(Multa $multa): self
     {
         $this->multa = $multa;
         return $this;
     }
+
+    
+    public function recebimento_divergente(): RecebimentoDivergente
+    {
+        $recebimentoDivergente = new RecebimentoDivergente();
+
+        $this->setRecebimentoDivergente($recebimentoDivergente);
+
+        return $recebimentoDivergente;
+    }
+
+    public function setRecebimentoDivergente(RecebimentoDivergente $recebimentoDivergente): self
+    {
+        $this->recebimento_divergente = $recebimentoDivergente;
+        return $this;
+    }
+
 }

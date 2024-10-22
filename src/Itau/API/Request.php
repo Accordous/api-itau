@@ -96,7 +96,6 @@ class Request
             throw new ItauException($responseDecode['error_description'], 100);
         }
         $credentials->setAuthorizationToken($responseDecode["access_token"]);
-
         return $credentials;
     }    
 
@@ -130,14 +129,12 @@ class Request
             CURLOPT_SSLCERT => $credentials->getCertificate(),
             CURLOPT_SSLKEY => $credentials->getCertificateKey(),
             CURLOPT_CAINFO => $credentials->getCertificate(),
-            CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_SSL_VERIFYPEER => 0
         );
 
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'Authorization: Bearer ' . $credentials->getAuthorizationToken();
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'x-itau-apikey: ' . $credentials->getClientId();
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'x-itau-correlationID: 2';
-
         // Add custom method
         if (in_array($method, [
             self::CURL_TYPE_DELETE,
@@ -159,7 +156,7 @@ class Request
         $response = null;
         $errorMessage = '';
 
-        try {
+        try {   
             $response = curl_exec($curl);
         } catch (Exception $e) {
             throw new ItauException("Request Exception, error: {$e->getMessage()}", 100);

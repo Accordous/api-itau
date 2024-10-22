@@ -20,7 +20,8 @@ class BaseResponse implements \JsonSerializable
     private $status;
     private $mensagem;
     private $codigo;
-
+    private $data;
+    
     public function jsonSerialize()
     {
         return get_object_vars($this);
@@ -49,6 +50,16 @@ class BaseResponse implements \JsonSerializable
         return $this;
     }
 
+    public function getResponseJSON()
+    {
+        return $this->responseJSON;
+    }
+
+    public function getResponse()
+    {
+        return json_decode($this->responseJSON, JSON_PRETTY_PRINT);
+    }
+
     public function setStatusCode($status_code)
     {
         $this->status_code = $status_code;
@@ -68,6 +79,11 @@ class BaseResponse implements \JsonSerializable
         return $this;
     }
 
+    public function setData($data){
+        $this->data = $data;
+        return $this;
+    }
+    
     public function getStatus()
     {
         if ($this->status_code == 200) {
