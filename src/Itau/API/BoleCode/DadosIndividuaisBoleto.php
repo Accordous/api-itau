@@ -13,6 +13,7 @@ class DadosIndividuaisBoleto implements JsonSerializable
     private string $valor_titulo;
     private string $data_limite_pagamento;
 
+    public string $texto_seu_numero;
     public string $codigo_barras;
     public string $numero_linha_digitavel;
 
