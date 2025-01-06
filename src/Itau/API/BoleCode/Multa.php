@@ -13,11 +13,13 @@ class Multa implements JsonSerializable
 
     private string $codigo_tipo_multa;
     private string $percentual_multa;
+    private int $quantidade_dias_multa;
 
-    public function setMulta($codigo, $percentual): self
+    public function setMulta($codigo, $percentual, $quantidade_dias_multa): self
     {
         $this->codigo_tipo_multa = $codigo;
         $this->percentual_multa = $percentual*100000;
+        $this->quantidade_dias_multa = $quantidade_dias_multa;
         return $this;
     }
 }

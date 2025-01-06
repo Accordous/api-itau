@@ -13,13 +13,17 @@ class Juros implements JsonSerializable
 
     private string $codigo_tipo_juros;
     private string $percentual_juros;
+    private int $quantidade_dias_juros;
 
-    public function setJuros($codigo, $percentual): self
+    public function setJuros($codigo, $percentual, $quantidade_dias_juros): self
     {
         $this->codigo_tipo_juros = $codigo;
         if($codigo != self::SEM_JUROS){
             $this->percentual_juros = $percentual*100000;
         }
+
+        $this->quantidade_dias_juros = $quantidade_dias_juros;
+        
         return $this;
     }
 }
