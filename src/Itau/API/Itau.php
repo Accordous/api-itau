@@ -28,13 +28,13 @@ class Itau
 
     private $debug = false;
 
-    public function __construct(string $client_id, string $client_secret, string $certificate, string $certificateKey)
+    public function __construct(string $client_id, string $client_secret, string $certificate, string $certificateKey, string $environment)
     {
         $this->setClientId($client_id);
         $this->setClientSecret($client_secret);
         $this->setCertificate($certificate);
         $this->setCertificateKey($certificateKey);
-        $this->setEnvironment(Environment::production());
+        $this->setEnvironment($environment == 'production' ? Environment::production() : Environment::sandbox());
     }
 
     /**
