@@ -41,7 +41,8 @@ class Request
         $headers = [
             'Content-Type: application/x-www-form-urlencoded',
             'x-itau-correlationID: 2',
-            'x-itau-flowID: 1'
+            'x-itau-flowID: 1',
+            'User-Agent: Itau-api-php/1.0',
         ];
 
         $request = [
@@ -60,9 +61,10 @@ class Request
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => http_build_query($request),
-            CURLOPT_SSLCERT => $credentials->getCertificate(),
-            CURLOPT_SSLKEY => $credentials->getCertificateKey(),
-            CURLOPT_CAINFO => $credentials->getCertificate(),
+            // TODO: usar certificados somente em PROD
+            // CURLOPT_SSLCERT => $credentials->getCertificate(),
+            // CURLOPT_SSLKEY => $credentials->getCertificateKey(),
+            // CURLOPT_CAINFO => $credentials->getCertificate(),
             CURLOPT_SSL_VERIFYPEER => 0
         ]);
 
@@ -212,15 +214,18 @@ class Request
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json; charset=utf-8'
             ),
-            CURLOPT_SSLCERT => $credentials->getCertificate(),
-            CURLOPT_SSLKEY => $credentials->getCertificateKey(),
-            CURLOPT_CAINFO => $credentials->getCertificate(),
+            // TODO: usar certificados somente em PROD
+            // CURLOPT_SSLCERT => $credentials->getCertificate(),
+            // CURLOPT_SSLKEY => $credentials->getCertificateKey(),
+            // CURLOPT_CAINFO => $credentials->getCertificate(),
             CURLOPT_SSL_VERIFYPEER => 0
         );
 
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'Authorization: Bearer ' . $credentials->getAuthorizationToken();
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'x-itau-apikey: ' . $credentials->getClientId();
         $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'x-itau-correlationID: 2';
+        $defaultCurlOptions[CURLOPT_HTTPHEADER][] = 'User-Agent: Itau-api-php/1.0';
+
         // Add custom method
         if (in_array($method, [
             self::CURL_TYPE_DELETE,

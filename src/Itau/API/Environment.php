@@ -44,6 +44,17 @@ class Environment
         );
     }
 
+    public static function sandbox()
+    {
+        return new Environment(
+            'https://sandbox.devportal.itau.com.br/api/oauth/jwt',
+            'https://sandbox.devportal.itau.com.br/itau-ep9-gtw-pix-recebimentos-ext-v2/v2',
+            'https://sandbox.devportal.itau.com.br/itau-ep9-gtw-pix-recebimentos-conciliacoes-v2-ext/v2',
+            '',
+            ''
+        );
+    }
+
     public function getApiPixUrl(): string
     {
         return $this->apiPix;
