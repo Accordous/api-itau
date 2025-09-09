@@ -279,6 +279,17 @@ class Itau
         return $movimentacaoResponse;
     }
 
+    public function renovarCertificado($conteudoNovo)
+    {
+     
+        $request = new Request($this);
+        $response = $request->renovarCertificado($this, $conteudoNovo);
+
+        dump($response);
+
+        return $response;
+    }
+
 
 
     private function generateErrorResponse(BaseResponse $baseResponse, $e)
