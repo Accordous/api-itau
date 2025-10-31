@@ -4,6 +4,7 @@ namespace Itau\API;
 
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Itau\API\Exception\ItauException;
 
@@ -157,22 +158,22 @@ class HttpClientRequest
         }
     }
 
-    public function get(Itau $credentials, $fullUrl, $params = null)
+    public function get(Itau $credentials, $fullUrl, $params = null): Response
     {
         return $this->send($credentials, $fullUrl, self::CURL_TYPE_GET, $params);
     }
 
-    public function post(Itau $credentials, $fullUrl, $params)
+    public function post(Itau $credentials, $fullUrl, $params): Response
     {
         return $this->send($credentials, $fullUrl, self::CURL_TYPE_POST, $params);
     }
 
-    public function patch(Itau $credentials, $fullUrl, $params = null)
+    public function patch(Itau $credentials, $fullUrl, $params = null): Response
     {
         return $this->send($credentials, $fullUrl, 'PATCH', $params);
     }
 
-    private function send(Itau $credentials, $fullUrl, $method, $jsonBody = null)
+    private function send(Itau $credentials, $fullUrl, $method, $jsonBody = null): Response
     {
         $defaultHeaders = [
             'Content-Type' => 'application/json; charset=utf-8',
@@ -201,21 +202,7 @@ class HttpClientRequest
                 default => throw new ItauException("Unsupported HTTP method: $method", 100),
             };
 
-            $statusCode = $response->status();
-
-            if ($statusCode >= 400) {
-                throw new ItauException($response->body(), 100);
-            }
-
-            $responseDecode = $response->json();
-
-            if (is_null($responseDecode)) {
-                $responseDecode = ['status_code' => $statusCode];
-            } else {
-                $responseDecode['status_code'] = $statusCode;
-            }
-
-            return $responseDecode;
+            return $response;
         } catch (Exception $e) {
             if ($e instanceof ItauException) {
                 throw $e;

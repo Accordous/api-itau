@@ -7,6 +7,7 @@ use Itau\API\BoleCode\BoleCodeResponse;
 use Itau\API\Boleto\Boleto;
 use Itau\API\Boleto\BoletoRequest;
 use Itau\API\Boleto\BoletoResponse;
+use Illuminate\Http\Client\Response;
 use Itau\API\Francesa\MovimentacaoResponse;
 use Itau\API\Pix\Pix;
 use Itau\API\Pix\PixResponse;
@@ -218,26 +219,11 @@ class Itau
         }
     }
 
-    public function boleCode(BoleCode $boleCode): BoleCodeResponse
+    public function boleCode(BoleCode $boleCode): BoleCodeResponse|Response
     {
-        $boleCodeResponse = new BoleCodeResponse();
-        // try {
-        if ($this->debug) {
-            print $boleCode->toJSON();
-        }
-
         $request = $this->createRequest();
-        $response = $request->post($this, "{$this->getEnvironment()->getApiBoleCodeUrl()}/boletos_pix", $boleCode->toJSON());
 
-        // Add fields do not return in response
-        $boleCodeResponse->mapperJson($boleCode->toArray());
-        // Add response fields
-        $boleCodeResponse->mapperJson($response);
-        $boleCodeResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
-        return $boleCodeResponse;
-        // } catch (\Exception $e) {
-        //     return $this->generateErrorResponse($boleCodeResponse, $e);
-        // }
+        return $request->post($this, "{$this->getEnvironment()->getApiBoleCodeUrl()}/boletos_pix", $boleCode->toJSON());
     }
 
     public function boleto(Boleto $boleto): BoletoResponse
