@@ -1,4 +1,5 @@
 <?php
+
 namespace Itau\API;
 
 use Itau\API\BoleCode\BoleCode;
@@ -27,14 +28,16 @@ class Itau
     private $authorizationToken;
 
     private $debug = false;
+    private string $requestType = 'HttpClientRequest'; // 'Request' ou 'HttpClientRequest'
 
-    public function __construct(string $client_id, string $client_secret, string $certificate, string $certificateKey, string $environment)
+    public function __construct(string $client_id, string $client_secret, string $certificate, string $certificateKey, string $environment, string $requestType = 'HttpClientRequest')
     {
         $this->setClientId($client_id);
         $this->setClientSecret($client_secret);
         $this->setCertificate($certificate);
         $this->setCertificateKey($certificateKey);
         $this->setEnvironment($environment == 'production' ? Environment::production() : Environment::sandbox());
+        $this->setRequestType($requestType);
     }
 
     /**
@@ -153,25 +156,63 @@ class Itau
         return $this;
     }
 
+    /**
+     * Define o tipo de Request a ser utilizado
+     * 
+     * @param string $requestType 'Request' ou 'HttpClientRequest'
+     * @return self
+     */
+    public function setRequestType(string $requestType): self
+    {
+        if (!in_array($requestType, ['Request', 'HttpClientRequest'])) {
+            throw new \InvalidArgumentException("Request type must be 'Request' or 'HttpClientRequest'");
+        }
+        $this->requestType = $requestType;
+
+        return $this;
+    }
+
+    /**
+     * Retorna o tipo de Request configurado
+     * 
+     * @return string
+     */
+    public function getRequestType(): string
+    {
+        return $this->requestType;
+    }
+
+    /**
+     * Cria uma instância do Request baseado na configuração
+     * 
+     * @return Request|HttpClientRequest
+     */
+    private function createRequest()
+    {
+        if ($this->requestType === 'HttpClientRequest') {
+            return new HttpClientRequest($this);
+        }
+        return new Request($this);
+    }
+
     public function pix(Pix $pix): PixResponse
     {
         $pixResponse = new PixResponse();
-        try{
+        try {
             if ($this->debug) {
                 print $pix->toJSON();
             }
 
-            $request = new Request($this);
+            $request = $this->createRequest();
             $response = $request->post($this, "{$this->getEnvironment()->getApiPixUrl()}/cob", $pix->toJSON());
-           
-            
+
+
             // Add fields do not return in response
             $pixResponse->mapperJson($pix->toArray());
             // Add response fields
             $pixResponse->mapperJson($response);
             $pixResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
             return $pixResponse;
-
         } catch (\Exception $e) {
             return $this->generateErrorResponse($pixResponse, $e);
         }
@@ -180,30 +221,29 @@ class Itau
     public function boleCode(BoleCode $boleCode): BoleCodeResponse
     {
         $boleCodeResponse = new BoleCodeResponse();
-        try{
-            if ($this->debug) {
-                print $boleCode->toJSON();
-            }
-
-            $request = new Request($this);
-            $response = $request->post($this, "{$this->getEnvironment()->getApiBoleCodeUrl()}/boletos_pix", $boleCode->toJSON());
-           
-            // Add fields do not return in response
-            $boleCodeResponse->mapperJson($boleCode->toArray());
-            // Add response fields
-            $boleCodeResponse->mapperJson($response);
-            $boleCodeResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
-            return $boleCodeResponse;
-
-        } catch (\Exception $e) {
-            return $this->generateErrorResponse($boleCodeResponse, $e);
+        // try {
+        if ($this->debug) {
+            print $boleCode->toJSON();
         }
+
+        $request = $this->createRequest();
+        $response = $request->post($this, "{$this->getEnvironment()->getApiBoleCodeUrl()}/boletos_pix", $boleCode->toJSON());
+
+        // Add fields do not return in response
+        $boleCodeResponse->mapperJson($boleCode->toArray());
+        // Add response fields
+        $boleCodeResponse->mapperJson($response);
+        $boleCodeResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
+        return $boleCodeResponse;
+        // } catch (\Exception $e) {
+        //     return $this->generateErrorResponse($boleCodeResponse, $e);
+        // }
     }
 
     public function boleto(Boleto $boleto): BoletoResponse
     {
         $boleCodeResponse = new BoletoResponse();
-        try{
+        try {
             if ($this->debug) {
                 print $boleto->toJSON();
             }
@@ -211,7 +251,7 @@ class Itau
             $boletoRequest = new BoletoRequest();
             $boletoRequest->data = $boleto;
 
-            $request = new Request($this);
+            $request = $this->createRequest();
 
             $response = $request->post($this, "{$this->getEnvironment()->getApiBoletoUrl()}/boletos", $boletoRequest->toJSON());
             $boleCodeResponse->mapperJson($boleto->toArray());
@@ -220,7 +260,6 @@ class Itau
             $boleCodeResponse->setData($response["data"]);
             $boleCodeResponse->setStatus(BaseResponse::STATUS_CONFIRMED);
             return $boleCodeResponse;
-
         } catch (\Exception $e) {
             return $this->generateErrorResponse($boleCodeResponse, $e);
         }
@@ -231,8 +270,8 @@ class Itau
     {
         $boletoResponse = new BoletoResponse();
 
-        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT).str_pad($contaComDigito, 8, '0', STR_PAD_LEFT).str_pad($carteira, 3, '0', STR_PAD_LEFT).str_pad($nossoNumero, 8, '0', STR_PAD_LEFT);
-        $request = new Request($this);
+        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT) . str_pad($contaComDigito, 8, '0', STR_PAD_LEFT) . str_pad($carteira, 3, '0', STR_PAD_LEFT) . str_pad($nossoNumero, 8, '0', STR_PAD_LEFT);
+        $request = $this->createRequest();
         $response = $request->patch($this, "{$this->getEnvironment()->getApiBoletoUrl()}/boletos/{$path}/data_vencimento", $vencimento->toJSON());
         $boletoResponse->mapperJson($response);
 
@@ -243,9 +282,9 @@ class Itau
     {
         $boletoResponse = new BoletoResponse();
 
-        $id_beneficiario = str_pad($agencia, 4, '0', STR_PAD_LEFT).str_pad($contaComDigito, 8, '0', STR_PAD_LEFT);
+        $id_beneficiario = str_pad($agencia, 4, '0', STR_PAD_LEFT) . str_pad($contaComDigito, 8, '0', STR_PAD_LEFT);
         $nosso_numero = str_pad($nossoNumero, 8, '0', STR_PAD_LEFT);
-        $request = new Request($this);
+        $request = $this->createRequest();
         $response = $request->get($this, "{$this->getEnvironment()->getApiBoletoConsultaUrl()}/boletos?id_beneficiario={$id_beneficiario}&nosso_numero={$nosso_numero}");
 
         // Add response fields
@@ -258,8 +297,8 @@ class Itau
     {
         $boletoResponse = new BoletoResponse();
 
-        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT).str_pad($contaComDigito, 8, '0', STR_PAD_LEFT).str_pad($carteira, 3, '0', STR_PAD_LEFT).str_pad($nossoNumero, 8, '0', STR_PAD_LEFT);
-        $request = new Request($this);
+        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT) . str_pad($contaComDigito, 8, '0', STR_PAD_LEFT) . str_pad($carteira, 3, '0', STR_PAD_LEFT) . str_pad($nossoNumero, 8, '0', STR_PAD_LEFT);
+        $request = $this->createRequest();
         $response = $request->patch($this, "{$this->getEnvironment()->getApiBoletoUrl()}/boletos/{$path}/baixa", '{}');
         // Add response fields
         $boletoResponse->mapperJson($response);
@@ -267,13 +306,13 @@ class Itau
         return $boletoResponse;
     }
 
-    
+
     public function consultarPagamentos($agencia, $contaComDigito, $data, $page = 0, $tipo = "liquidacoes")
     {
         $movimentacaoResponse = new MovimentacaoResponse();
 
-        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT).str_pad($contaComDigito, 8, '0', STR_PAD_LEFT);
-        $request = new Request($this);
+        $path = str_pad($agencia, 4, '0', STR_PAD_LEFT) . str_pad($contaComDigito, 8, '0', STR_PAD_LEFT);
+        $request = $this->createRequest();
         $response = $request->get($this, "https://boletos.cloud.itau.com.br/boletos/v3/francesas/{$path}/movimentacoes?data={$data}&tipo_movimentacao={$tipo}&page={$page}", '{}');
         $movimentacaoResponse->mapperJson($response);
         return $movimentacaoResponse;
@@ -281,8 +320,8 @@ class Itau
 
     public function renovarCertificado($conteudoNovo)
     {
-     
-        $request = new Request($this);
+
+        $request = $this->createRequest();
         $response = $request->renovarCertificado($this, $conteudoNovo);
 
         dump($response);
@@ -295,11 +334,11 @@ class Itau
     private function generateErrorResponse(BaseResponse $baseResponse, $e)
     {
         $baseResponse->mapperJson(json_decode($e->getMessage(), true));
-        
+
         if (empty($baseResponse->getStatus())) {
             $baseResponse->setStatus(BaseResponse::STATUS_ERROR);
         }
-        
+
         return $baseResponse;
     }
 }

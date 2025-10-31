@@ -1,4 +1,5 @@
 <?php
+
 namespace Itau\API\BoleCode;
 
 use Itau\API\TraitEntity;
@@ -16,13 +17,33 @@ class BoleCode implements \JsonSerializable
     private DadosQrcode $dados_qrcode;
 
     public function __construct(
-        $modo, $agencia, $conta, $contaDV, $valor, $tipoBoleto, $numeroDocumento, $nome, $tipoPessoa,
-        $documento, $endereco, $numero, $complemento, $bairro, $cidade, $siglaEstado, $cep, $nossoNumero, 
-        $vencimento, $chavePix, $tipoMulta, $percentualMulta, $tipoJuros, $percentualJuros
-    )
-    {
+        $modo,
+        $agencia,
+        $conta,
+        $contaDV,
+        $valor,
+        $tipoBoleto,
+        $numeroDocumento,
+        $nome,
+        $tipoPessoa,
+        $documento,
+        $endereco,
+        $numero,
+        $complemento,
+        $bairro,
+        $cidade,
+        $siglaEstado,
+        $cep,
+        $nossoNumero,
+        $vencimento,
+        $chavePix,
+        $tipoMulta,
+        $percentualMulta,
+        $tipoJuros,
+        $percentualJuros
+    ) {
         $this->setEtapaProcessoBoleto($modo)
-            ->beneficiario()->setIdBeneficiario($agencia, $conta.$contaDV);
+            ->beneficiario()->setIdBeneficiario($agencia, $conta . $contaDV);
         $dadoBoleto = $this->dadoBoleto()
             ->setDados($valor, $tipoBoleto, $numeroDocumento);
         $pagador = $dadoBoleto->pagador();
@@ -30,11 +51,19 @@ class BoleCode implements \JsonSerializable
         $tipoPessoa = $pessoa->tipoPessoa()
             ->setPessoa($tipoPessoa, $documento);
         $pagador->endereco()->setEndereco(
-            $endereco, $numero, $complemento, $bairro, $cidade, $siglaEstado, $cep
+            $endereco,
+            $numero,
+            $complemento,
+            $bairro,
+            $cidade,
+            $siglaEstado,
+            $cep
         );
-            
+
         $dadoBoleto->dadosIndividuais()->setDados(
-            $nossoNumero, $vencimento, $valor
+            $nossoNumero,
+            $vencimento,
+            $valor
         );
 
         $dadoBoleto->multa()->setMulta($tipoMulta, $percentualMulta);

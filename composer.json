@@ -5,11 +5,12 @@
     "license":"MIT",
     "type":"library",
     "require":{
-        "php": ">=7.1"
+        "php": ">=8.3",
+        "illuminate/http": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0"
     },
     "autoload":{
         "psr-4":{
-            "Itau\\":"src//Itau"
+            "Itau\\":"src/Itau"
         }
     },
     "authors":[
