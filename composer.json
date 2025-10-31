@@ -1,5 +1,5 @@
 {
-    "name":"lucastmax/api-itau",
+    "name":"accordous/api-itau",
     "description":"SDK php para integração com a API Itau",
     "minimum-stability":"stable",
     "license":"MIT",
