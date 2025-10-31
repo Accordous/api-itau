@@ -160,32 +160,7 @@ class Request
         }
 
         return $response;
-
-
-        /*
-
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $endpoint,
-            CURLOPT_PORT => 443,
-            CURLOPT_VERBOSE => 0,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_SSL_VERIFYPEER => 0
-        ]);
-
-
-
-
-        if (is_array($responseDecode) && isset($responseDecode['error'])) {
-            throw new ItauException($responseDecode['error_description'], 100);
-        }
-        $credentials->setAuthorizationToken($responseDecode["access_token"]);
-        return $credentials;
-        */
     }    
-
 
     public function get(Itau $credentials, $fullUrl, $params = null)
     {
@@ -275,4 +250,63 @@ class Request
         
         return $responseDecode;
     }
+
+    public function renovarCertificado(Itau $credentials, $conteudoCertificado)
+    {       
+        $endpoint = "https://sts.itau.com.br/seguranca/v2/certificado/renovacao";
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $endpoint,
+            CURLOPT_PORT => 443,
+            CURLOPT_VERBOSE => 0,
+            CURLOPT_HTTPHEADER => array(
+                 'Content-Type: text/plain',
+                 'Authorization: Bearer ' . $credentials->getAuthorizationToken(),
+                 'x-itau-apikey: ' . $credentials->getClientId(),
+                 'x-itau-correlationID: 2'
+            ),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $conteudoCertificado,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSLCERT => $credentials->getCertificate(),
+            CURLOPT_SSLKEY => $credentials->getCertificateKey(),
+            CURLOPT_CAINFO => $credentials->getCertificate(),
+            ]
+        );
+
+        try {
+            $response = curl_exec($curl);
+        } catch (Exception $e) {
+            throw new ItauException($e->getMessage(), 100);
+        }
+        // Verify error
+        if ($response === false) {
+            $errorMessage = curl_error($curl);
+        }
+
+        $statusCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($statusCode >= 400) {
+            // TODO see what it means code 100
+            throw new ItauException($response, 100);
+        }
+        // Status code 204 don't have content. That means $response will be always false
+        // Provides a custom content for $response to avoid error in the next if logic
+        if ($statusCode === 204) {
+            return [
+                'status_code' => 204
+            ];
+        }
+
+        if (! $response) {
+            throw new ItauException("Empty response, curl_error: $errorMessage", $statusCode);
+        }
+
+        return $response;
+    }    
+
 }
